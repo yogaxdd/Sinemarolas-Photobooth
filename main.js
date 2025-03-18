@@ -25,13 +25,10 @@ const previewPhotos = document.getElementById('preview-photos');
 
 // Editor Elements
 const photostripContainer = document.getElementById('photostrip-container');
-const photostripCanvas = document.getElementById('photostrip-canvas');
 const enableDateToggle = document.getElementById('enable-date');
-const stickerTemplate = document.getElementById('sticker-template');
 
-// Download / QR Elements
+// Download Elements
 const finalPhoto = document.getElementById('final-photo');
-const qrCodeContainer = document.getElementById('qr-code');
 
 // Upload Elements
 const uploadButton = document.getElementById('upload-button');
@@ -59,7 +56,6 @@ let editorState = {
 
 // Initialize the app
 function init() {
-  console.log('Initializing app...');
   document.getElementById('current-year').textContent = new Date().getFullYear();
   setupEventListeners();
   createZoomModal();
@@ -71,10 +67,7 @@ function init() {
 
 // Setup event listeners
 function setupEventListeners() {
-  console.log('Setting up event listeners...');
-  
   startButton.addEventListener('click', () => {
-    console.log('Start button clicked');
     showScreen('preview');
     startCamera();
   });
@@ -95,22 +88,16 @@ function setupEventListeners() {
   continueButton.addEventListener('click', () => {
     generateFinalPhotostrip();
     showScreen('download');
-    generateQRCode();
   });
   
   downloadButton.addEventListener('click', downloadImage);
-  
   restartButton.addEventListener('click', resetApp);
-  
-  printButton.addEventListener('click', () => {
-    window.print();
-  });
+  printButton.addEventListener('click', () => window.print());
   
   enableDateToggle.addEventListener('change', (e) => {
     editorState.showDate = e.target.checked;
     updatePhotostrip();
   });
-  
   const enableWatermarkToggle = document.getElementById('enable-watermark');
   enableWatermarkToggle.addEventListener('change', (e) => {
     editorState.showWatermark = e.target.checked;
@@ -121,16 +108,12 @@ function setupEventListeners() {
   setupFilterOptions();
   setupStickerOptions();
   
-  uploadButton.addEventListener('click', () => {
-    uploadInput.click();
-  });
-  
+  uploadButton.addEventListener('click', () => uploadInput.click());
   uploadInput.addEventListener('change', handleUpload);
 }
 
 // Show a specific screen
 function showScreen(screenName) {
-  console.log(`Showing ${screenName} screen`);
   startScreen.classList.remove('active');
   previewScreen.classList.remove('active');
   editScreen.classList.remove('active');
@@ -154,7 +137,6 @@ function showScreen(screenName) {
       downloadScreen.classList.add('active');
       break;
   }
-  
   currentStage = screenName;
 }
 
@@ -168,7 +150,6 @@ function togglePreviewSection() {
 // Start the camera
 async function startCamera() {
   try {
-    console.log('Starting camera...');
     // Stop any existing stream
     if (video.srcObject) {
       const tracks = video.srcObject.getTracks();
@@ -184,7 +165,6 @@ async function startCamera() {
       audio: false
     };
     
-    // Check if getUserMedia is supported
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showToast("Your browser doesn't support camera access. Please use the upload option instead.", "error");
       return;
@@ -208,8 +188,7 @@ async function startCamera() {
 // Stop the camera
 function stopCamera() {
   if (video && video.srcObject) {
-    const stream = video.srcObject;
-    const tracks = stream.getTracks();
+    const tracks = video.srcObject.getTracks();
     tracks.forEach(track => track.stop());
     video.srcObject = null;
   }
@@ -217,12 +196,9 @@ function stopCamera() {
 
 // Start capture process
 function startCapture() {
-  console.log('Starting capture process...');
   photosTaken = 0;
   photos = [];
-  if (previewPhotos) {
-    previewPhotos.innerHTML = '';
-  }
+  if (previewPhotos) previewPhotos.innerHTML = '';
   photoCounter.textContent = `${photosTaken}/3 Photos`;
   photoCounter.classList.remove('hidden');
   captureButton.classList.add('hidden');
@@ -231,9 +207,7 @@ function startCapture() {
 
 // Start the countdown
 function startCountdown() {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-  }
+  if (countdownInterval) clearInterval(countdownInterval);
   countdown = 3;
   countdownDisplay.textContent = countdown;
   countdownDisplay.classList.remove('hidden');
@@ -251,16 +225,12 @@ function startCountdown() {
 
 // Capture a photo
 function capturePhoto() {
-  console.log('Capturing photo...');
   flashOverlay.classList.add('active');
-  setTimeout(() => {
-    flashOverlay.classList.remove('active');
-  }, 300);
+  setTimeout(() => flashOverlay.classList.remove('active'), 300);
   
   const context = canvas.getContext('2d');
   
   if (video.videoWidth === 0 || video.videoHeight === 0) {
-    console.error('Video dimensions are 0, cannot capture photo');
     showToast("Cannot capture photo. Please check your camera or use the upload option.", "error");
     captureButton.classList.remove('hidden');
     return;
@@ -288,9 +258,7 @@ function capturePhoto() {
       captureButton.classList.remove('hidden');
     }, 1000);
   } else {
-    setTimeout(() => {
-      startCountdown();
-    }, 1000);
+    setTimeout(() => startCountdown(), 1000);
   }
 }
 
@@ -310,9 +278,7 @@ function addPhotoToPreview(imgSrc, photoNumber) {
   photoItem.appendChild(img);
   photoItem.appendChild(numberBadge);
   
-  photoItem.addEventListener('click', () => {
-    openZoomModal(imgSrc);
-  });
+  photoItem.addEventListener('click', () => openZoomModal(imgSrc));
   
   previewPhotos.appendChild(photoItem);
 }
@@ -351,9 +317,7 @@ function createZoomModal() {
 function openZoomModal(imgSrc) {
   if (!zoomModal) return;
   const zoomImg = document.getElementById('zoom-img');
-  if (zoomImg) {
-    zoomImg.src = imgSrc;
-  }
+  if (zoomImg) zoomImg.src = imgSrc;
   zoomModal.classList.add('active');
 }
 
@@ -365,7 +329,6 @@ function closeZoomModal() {
 
 // Create the photostrip from captured photos
 function createPhotostrip() {
-  console.log('Creating photostrip...');
   photostripContainer.innerHTML = '';
   
   photos.forEach((photo, index) => {
@@ -380,13 +343,8 @@ function createPhotostrip() {
     photostripContainer.appendChild(photoElement);
   });
   
-  if (editorState.showDate) {
-    addDateToPhotostrip();
-  }
-  
-  if (editorState.showWatermark) {
-    addWatermarkToPhotostrip();
-  }
+  if (editorState.showDate) addDateToPhotostrip();
+  if (editorState.showWatermark) addWatermarkToPhotostrip();
   
   updatePhotostrip();
 }
@@ -423,20 +381,18 @@ function updatePhotostrip() {
     }
   });
   
+  // Date
   const dateElement = photostripContainer.querySelector('.photostrip-date');
   if (editorState.showDate) {
-    if (!dateElement) {
-      addDateToPhotostrip();
-    }
+    if (!dateElement) addDateToPhotostrip();
   } else if (dateElement) {
     photostripContainer.removeChild(dateElement);
   }
   
+  // Watermark
   const watermarkElement = photostripContainer.querySelector('.photostrip-watermark');
   if (editorState.showWatermark) {
-    if (!watermarkElement) {
-      addWatermarkToPhotostrip();
-    }
+    if (!watermarkElement) addWatermarkToPhotostrip();
   } else if (watermarkElement) {
     photostripContainer.removeChild(watermarkElement);
   }
@@ -472,17 +428,13 @@ function setupFilterOptions() {
   });
 }
 
-// Setup sticker options (hapus & resize)
+// Setup sticker options
 function setupStickerOptions() {
   const stickerOptions = document.querySelectorAll('.sticker:not(.add-sticker)');
   stickerOptions.forEach(sticker => {
-    if (!sticker.dataset.sticker) return;
-    
     sticker.addEventListener('click', () => {
       const stickerImg = sticker.querySelector('img');
-      if (stickerImg) {
-        addStickerToPhotostrip(stickerImg.src);
-      }
+      if (stickerImg) addStickerToPhotostrip(stickerImg.src);
     });
   });
   
@@ -537,8 +489,7 @@ function addStickerToPhotostrip(stickerSrc) {
   
   stickers.push({
     element: stickerElement,
-    src: stickerSrc,
-    position: { top: '50px', left: '50px' }
+    src: stickerSrc
   });
   
   showToast('Sticker added! Drag to position it.');
@@ -580,62 +531,58 @@ function makeStickerDraggable(element) {
   }
 }
 
-// Generate the final photostrip image
+// Generate the final photostrip image (with onload wait)
 function generateFinalPhotostrip() {
-  // Create a new canvas to draw the photostrip
   const finalCanvas = document.createElement('canvas');
   const ctx = finalCanvas.getContext('2d');
   
-  // Get dimensions from the photostrip container
   const containerWidth = photostripContainer.offsetWidth;
   const containerHeight = photostripContainer.offsetHeight;
   
   finalCanvas.width = containerWidth;
   finalCanvas.height = containerHeight;
   
-  // Draw background
+  // Fill background
   ctx.fillStyle = getColorValue(editorState.photostripColor);
   ctx.fillRect(0, 0, containerWidth, containerHeight);
   
-  // Draw each photo with proper spacing
-  const photoElements = photostripContainer.querySelectorAll('.photostrip-photo');
-  let currentY = 16; // Start with a small margin
+  // Kumpulkan semua <img> di photostrip (termasuk sticker)
+  const photoDivs = photostripContainer.querySelectorAll('.photostrip-photo img');
+  const dateEl = photostripContainer.querySelector('.photostrip-date');
+  const watermarkEl = photostripContainer.querySelector('.photostrip-watermark');
   
-  photoElements.forEach((photoElement, index) => {
-    const img = photoElement.querySelector('img');
-    const photoWidth = photoElement.offsetWidth - 2; // Account for borders
-    const photoHeight = photoElement.offsetHeight - 2;
-    
-    // Create a temporary canvas to apply filters
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = photoWidth;
-    tempCanvas.height = photoHeight;
-    
-    // Draw the image
-    const imgElement = new Image();
-    imgElement.src = photos[index];
-    
-    tempCtx.drawImage(imgElement, 0, 0, photoWidth, photoHeight);
-    
-    // Apply filter effect
-    if (editorState.filter !== 'none') {
-      applyCanvasFilter(tempCtx, tempCanvas.width, tempCanvas.height, editorState.filter);
-    }
-    
-    // Draw the photo onto the final canvas
-    ctx.drawImage(tempCanvas, 16, currentY, photoWidth, photoHeight);
-    
-    // Update Y position for next photo
-    currentY += photoHeight + 8; // Add a small gap between photos
+  // Kita akan menunggu semua foto selesai load (promise) sebelum digambar
+  const imagePromises = [];
+  
+  // Gambar foto satu per satu, secara vertikal (sederhana)
+  let currentY = 10;
+  const gap = 10;
+  
+  photoDivs.forEach((imgTag, index) => {
+    const p = new Promise((resolve) => {
+      const loadedImg = new Image();
+      loadedImg.src = imgTag.src;
+      loadedImg.onload = () => {
+        // Hitung aspect ratio
+        const ratio = loadedImg.width / loadedImg.height;
+        const desiredWidth = containerWidth - 20; // margin 10 kiri/kanan
+        const desiredHeight = desiredWidth / ratio;
+        
+        ctx.drawImage(loadedImg, 10, currentY, desiredWidth, desiredHeight);
+        currentY += desiredHeight + gap;
+        resolve();
+      };
+      loadedImg.onerror = resolve; // kalau gagal load, tetap resolve
+    });
+    imagePromises.push(p);
   });
   
-  // Add date if enabled
-  if (editorState.showDate) {
-    const dateElement = photostripContainer.querySelector('.photostrip-date');
-    if (dateElement) {
+  // Setelah semua foto beres, baru gambar date/watermark
+  Promise.all(imagePromises).then(() => {
+    // Gambar date
+    if (dateEl && editorState.showDate) {
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(16, currentY, containerWidth - 32, 40);
+      ctx.fillRect(10, currentY, containerWidth - 20, 40);
       
       ctx.font = '20px "Playfair Display", serif';
       ctx.fillStyle = '#000000';
@@ -644,247 +591,64 @@ function generateFinalPhotostrip() {
       
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       const dateText = editorState.date.toLocaleDateString(undefined, options);
-      
       ctx.fillText(dateText, containerWidth / 2, currentY + 20);
+      currentY += 40 + gap;
+    }
+    
+    // Gambar watermark
+    if (watermarkEl && editorState.showWatermark) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(10, currentY, containerWidth - 20, 40);
       
-      currentY += 48; // Update Y position after date
+      ctx.font = 'italic 18px "Playfair Display", serif';
+      ctx.fillStyle = '#333333';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Sinemarolas Studio', containerWidth / 2, currentY + 20);
+      currentY += 40 + gap;
     }
-  }
-  
-  // Add watermark if enabled
-  if (editorState.showWatermark) {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(16, currentY, containerWidth - 32, 40);
     
-    ctx.font = 'italic 18px "Playfair Display", serif';
-    ctx.fillStyle = '#333333';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    // Terakhir, gambar stiker
+    // (Stiker posisinya absolute di photostripContainer)
+    stickers.forEach(sticker => {
+      const stickerImg = new Image();
+      stickerImg.src = sticker.src;
+      const x = parseInt(sticker.element.style.left) || 0;
+      const y = parseInt(sticker.element.style.top) || 0;
+      const w = sticker.element.offsetWidth;
+      const h = sticker.element.offsetHeight;
+      
+      // Kita load stiker dulu
+      stickerImg.onload = () => {
+        ctx.drawImage(stickerImg, x, y, w, h);
+        // Update finalPhoto di akhir
+        finalPhoto.src = finalCanvas.toDataURL('image/png');
+      };
+      stickerImg.onerror = () => {
+        // kalau stiker gagal load, tetap set finalPhoto
+        finalPhoto.src = finalCanvas.toDataURL('image/png');
+      };
+    });
     
-    ctx.fillText('Sinemarolas Studio', containerWidth / 2, currentY + 20);
-  }
-  
-  // Draw stickers
-  stickers.forEach(sticker => {
-    const img = new Image();
-    img.src = sticker.src;
-    
-    const stickerElement = sticker.element;
-    const x = parseInt(stickerElement.style.left);
-    const y = parseInt(stickerElement.style.top);
-    const width = stickerElement.offsetWidth;
-    const height = stickerElement.offsetHeight;
-    
-    ctx.drawImage(img, x, y, width, height);
-  });
-  
-  // Set the final photostrip image
-  finalPhoto.src = finalCanvas.toDataURL('image/png');
-}
-
-// Apply filter to canvas context
-function applyCanvasFilter(ctx, width, height, filterType) {
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-  
-  switch (filterType) {
-    case 'black-and-white':
-      for (let i = 0; i < data.length; i += 4) {
-        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-        data[i] = avg; // r
-        data[i + 1] = avg; // g
-        data[i + 2] = avg; // b
-      }
-      break;
-    case 'sepia':
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-      }
-      break;
-    case 'warm':
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.min(255, data[i] * 1.1); // Increase red
-        data[i + 2] = Math.max(0, data[i + 2] * 0.9); // Decrease blue
-      }
-      break;
-    case 'cold':
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.max(0, data[i] * 0.9); // Decrease red
-        data[i + 2] = Math.min(255, data[i + 2] * 1.1); // Increase blue
-      }
-      break;
-    case 'cool':
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const b = data[i + 2];
-        data[i] = b; // Swap red and blue
-        data[i + 2] = r;
-      }
-      break;
-  }
-  
-  ctx.putImageData(imageData, 0, 0);
-}
-
-// Generate QR code for downloading
-function generateQRCode() {
-  // Generate QR code for the final image
-  QRCode.toCanvas(qrCanvas, finalPhoto.src, {
-    width: 200,
-    margin: 1,
-    color: {
-      dark: '#1A1F2C',
-      light: '#FFFFFF'
-    }
-  }, (error) => {
-    if (error) {
-      console.error("Error generating QR code:", error);
-      showToast("Failed to generate QR code", "error");
+    // Jika tidak ada stiker, langsung set finalPhoto
+    if (stickers.length === 0) {
+      finalPhoto.src = finalCanvas.toDataURL('image/png');
     }
   });
 }
 
 // Download the final image
 function downloadImage() {
-  const downloadLink = document.createElement('a');
-  downloadLink.href = finalPhoto.src;
-  downloadLink.download = `sinemarolas-photostrip-${Date.now()}.png`;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  
-  showToast("Photostrip downloaded successfully!");
-}
-
-// Reset the app
-function resetApp() {
-  showScreen('start');
-  resetPhotos();
-}
-
-// Reset photos array and editor state
-function resetPhotos() {
-  photos = [];
-  photosTaken = 0;
-  stickers = [];
-  
-  // Reset editor state
-  editorState = {
-    photostripColor: 'black',
-    filter: 'none',
-    showDate: false,
-    showWatermark: false,
-    date: new Date()
-  };
-  
-  // Reset UI elements
-  enableDateToggle.checked = false;
-  const enableWatermarkToggle = document.getElementById('enable-watermark');
-  if (enableWatermarkToggle) {
-    enableWatermarkToggle.checked = false;
-  }
-  
-  // Make sure capture button is visible
-  if (captureButton) {
-    captureButton.classList.remove('hidden');
-  }
-  
-  // Clear preview photos
-  if (previewPhotos) {
-    previewPhotos.innerHTML = '';
-  }
-}
-
-
-// Apply filter to canvas context
-function applyCanvasFilter(ctx, x, y, width, height, filterType) {
-  const imageData = ctx.getImageData(x, y, width, height);
-  const data = imageData.data;
-  
-  switch (filterType) {
-    case 'black-and-white':
-      for (let i = 0; i < data.length; i += 4) {
-        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-        data[i] = avg;
-        data[i + 1] = avg;
-        data[i + 2] = avg;
-      }
-      break;
-    case 'sepia':
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-      }
-      break;
-    case 'warm':
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.min(255, data[i] * 1.1);     // R
-        data[i + 2] = Math.max(0, data[i + 2] * 0.9); // B
-      }
-      break;
-    case 'cold':
-      for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.max(0, data[i] * 0.9);       // R
-        data[i + 2] = Math.min(255, data[i + 2] * 1.1); // B
-      }
-      break;
-    case 'cool':
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const b = data[i + 2];
-        data[i] = b;
-        data[i + 2] = r;
-      }
-      break;
-  }
-  
-  ctx.putImageData(imageData, x, y);
-}
-
-// Generate QR code that directly contains the image data (no server needed)
-function generateQRCode(imageData = null) {
-  console.log('Generating QR code...');
-  qrCodeContainer.innerHTML = "";
-  
-  const dataToEncode = imageData || finalPhoto.src;
-  
-  // Create a QR code that directly contains the image data for scanning
-  new QRCode(qrCodeContainer, {
-    text: dataToEncode,
-    width: 200,
-    height: 200,
-    colorDark: "#1A1F2C",
-    colorLight: "#FFFFFF",
-    correctLevel: QRCode.CorrectLevel.L  // Use lower error correction for more data capacity
-  });
-  
-  showToast("QR code generated! Scan to download directly to your phone.");
-}
-
-// Download the final image
-function downloadImage() {
-  console.log('Downloading image...');
   if (!finalPhoto.src || finalPhoto.src === '') {
     showToast("No image to download", "error");
     return;
   }
-  
   const link = document.createElement('a');
   link.download = `sinemarolas-photostrip-${Date.now()}.png`;
   link.href = finalPhoto.src;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
   showToast("Photostrip downloaded successfully!");
 }
 
@@ -911,50 +675,25 @@ function resetPhotos() {
   
   enableDateToggle.checked = false;
   const enableWatermarkToggle = document.getElementById('enable-watermark');
-  if (enableWatermarkToggle) {
-    enableWatermarkToggle.checked = false;
-  }
+  if (enableWatermarkToggle) enableWatermarkToggle.checked = false;
   
-  if (captureButton) {
-    captureButton.classList.remove('hidden');
-  }
-  
-  if (previewPhotos) {
-    previewPhotos.innerHTML = '';
-  }
-  
-  if (photostripContainer) {
-    photostripContainer.innerHTML = '';
-  }
-  
-  if (finalPhoto) {
-    finalPhoto.src = '';
-  }
-  
-  if (qrCodeContainer) {
-    qrCodeContainer.innerHTML = '';
-  }
+  if (captureButton) captureButton.classList.remove('hidden');
+  if (previewPhotos) previewPhotos.innerHTML = '';
+  if (photostripContainer) photostripContainer.innerHTML = '';
+  if (finalPhoto) finalPhoto.src = '';
 }
 
 // Get the CSS color value from color name
 function getColorValue(colorName) {
   switch (colorName) {
-    case 'black':
-      return '#000000';
-    case 'white':
-      return '#FFFFFF';
-    case 'cream':
-      return '#FEF6E4';
-    case 'lightblue':
-      return '#D3E4FD';
-    case 'lightgreen':
-      return '#F2FCE2';
-    case 'lightpink':
-      return '#FFDEE2';
-    case 'transparent':
-      return 'transparent';
-    default:
-      return colorName;
+    case 'black': return '#000000';
+    case 'white': return '#FFFFFF';
+    case 'cream': return '#FEF6E4';
+    case 'lightblue': return '#D3E4FD';
+    case 'lightgreen': return '#F2FCE2';
+    case 'lightpink': return '#FFDEE2';
+    case 'transparent': return 'transparent';
+    default: return colorName;
   }
 }
 
@@ -965,20 +704,15 @@ function showToast(message, type = 'success') {
   toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('show');
-  }, 10);
+  setTimeout(() => toast.classList.add('show'), 10);
   setTimeout(() => {
     toast.classList.remove('show');
-    setTimeout(() => {
-      document.body.removeChild(toast);
-    }, 300);
+    setTimeout(() => document.body.removeChild(toast), 300);
   }, 3000);
 }
 
 // Handle file upload
 function handleUpload(e) {
-  console.log('Handling file upload...');
   const files = e.target.files;
   if (!files.length) return;
   
@@ -988,7 +722,7 @@ function handleUpload(e) {
     if (!file.type.startsWith('image/')) continue;
     
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = (event) => {
       if (event.target && typeof event.target.result === 'string') {
         photos.push(event.target.result);
         addPhotoToPreview(event.target.result, photos.length);
@@ -996,18 +730,14 @@ function handleUpload(e) {
         photoCounter.classList.remove('hidden');
         
         if (photos.length === 3) {
-          setTimeout(() => {
-            showScreen('edit');
-          }, 1000);
+          setTimeout(() => showScreen('edit'), 1000);
         }
       }
     };
     reader.readAsDataURL(file);
   }
-  // Empty the input value so same files can be selected again
   e.target.value = "";
 }
 
 // Initialize the app when DOM is loaded
 window.addEventListener('DOMContentLoaded', init);
-  
