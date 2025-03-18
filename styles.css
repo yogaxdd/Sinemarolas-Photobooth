@@ -337,15 +337,15 @@ footer {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
-.capture-button-container {
+/* .capture-button-container {
   position: absolute;
-  bottom: 68px;
+  bottom: 10px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
   z-index: 5;
-}
+} */
 
 .upload-button-container {
   margin-top: 1rem;
