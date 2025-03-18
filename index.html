@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sinemarolas Photobooth</title>
+  <!-- Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Styles -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,7 +14,17 @@
     <!-- Header -->
     <header>
       <div class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="film-icon"><path d="M19.82 2H4.18A2.18 2.18 0 0 0 2 4.18v15.64A2.18 2.18 0 0 0 4.18 22h15.64A2.18 2.18 0 0 0 22 19.82V4.18A2.18 2.18 0 0 0 19.82 2Z"></path><rect x="7" y="2" width="0.01" height="20"></rect><rect x="17" y="2" width="0.01" height="20"></rect><rect x="2" y="12" width="20" height="0.01"></rect><rect x="2" y="7" width="20" height="0.01"></rect><rect x="2" y="17" width="20" height="0.01"></rect></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="film-icon">
+          <path d="M19.82 2H4.18A2.18 2.18 0 0 0 2 4.18v15.64A2.18 2.18 0 0 0 4.18 22h15.64A2.18 2.18 0 0 0 22 19.82V4.18A2.18 2.18 0 0 0 19.82 2Z"></path>
+          <rect x="7" y="2" width="0.01" height="20"></rect>
+          <rect x="17" y="2" width="0.01" height="20"></rect>
+          <rect x="2" y="12" width="20" height="0.01"></rect>
+          <rect x="2" y="7" width="20" height="0.01"></rect>
+          <rect x="2" y="17" width="20" height="0.01"></rect>
+        </svg>
         <h1>Sinemarolas</h1>
       </div>
       <div class="subtitle">Studio Anniversary</div>
@@ -26,13 +38,19 @@
           <h1>Sinemarolas Photobooth</h1>
           <p>Capture your special moments at our anniversary celebration</p>
           <button id="start-button" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="camera-icon"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="camera-icon">
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+              <circle cx="12" cy="13" r="3"></circle>
+            </svg>
             Start Photobooth
           </button>
         </div>
       </div>
 
-      <!-- Preview Screen -->
+      <!-- Preview Screen (Camera & Upload) -->
       <div id="preview-screen" class="screen">
         <div class="glass-panel preview-panel">
           <div class="preview-layout">
@@ -42,12 +60,33 @@
                 <div id="countdown-display" class="count-display hidden"></div>
                 <div id="flash-overlay" class="flash-overlay"></div>
                 <div id="photo-counter" class="photo-counter hidden">0/3 Photos</div>
-                <div class="capture-button-container">
-                  <button id="capture-button" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="camera-icon"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
-                    Capture Photos
-                  </button>
-                </div>
+              </div>
+              <div class="capture-button-container">
+                <button id="capture-button" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="camera-icon">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                    <circle cx="12" cy="13" r="3"></circle>
+                  </svg>
+                  Capture Photos
+                </button>
+              </div>
+              <!-- Tombol Upload -->
+              <div class="upload-button-container">
+                <button id="upload-button" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="upload-icon">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Upload Photos
+                </button>
+                <input type="file" id="upload-input" accept="image/*" multiple style="display:none;" />
               </div>
               <div class="instruction-text">
                 <p>We'll take 3 photos with 3 second intervals</p>
@@ -61,131 +100,172 @@
         </div>
       </div>
 
-      <!-- Edit Screen -->
+      <!-- Edit Screen (Preview Photostrip Left, Customize Right) -->
       <div id="edit-screen" class="screen">
         <div class="glass-panel editor-panel">
           <h2>Customize Your Photostrip</h2>
-          
-          <div class="editor-options">
-            <div class="option-section">
-              <h3>Stickers</h3>
-              <div class="sticker-options">
-                <div class="sticker" data-sticker="balloon1">
-                  <img src="stickers/1.png" alt="Ballon 1">
+          <div class="editor-container">
+            <!-- Photostrip Preview di Kiri -->
+            <div class="photostrip-preview-side">
+              <div id="photostrip-container" class="photostrip-container">
+                <!-- Photos, date, watermark, stickers, dll -->
+              </div>
+              <div class="control-panel">
+                <button id="retake-button" class="btn-secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="refresh-icon">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                    <path d="M8 16H3v5"></path>
+                  </svg>
+                  Retake
+                </button>
+                <button id="preview-button" class="btn-secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="eye-icon">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  Update Preview
+                </button>
+                <button id="continue-button" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="download-icon">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Generate
+                </button>
+              </div>
+            </div>
+
+            <!-- Customization di Kanan -->
+            <div class="customization-side">
+              <div class="editor-options">
+                <div class="option-section">
+                  <h3>Stickers</h3>
+                  <div class="sticker-options">
+                    <!-- Contoh sticker (boleh ubah src) -->
+                    <div class="sticker" data-sticker="balloon1">
+                      <img 
+                        crossOrigin="anonymous" 
+                        src="stickers/1.png" 
+                        alt="Ballon 1">
+                    </div>
+                    <div class="sticker" data-sticker="balloon2">
+                      <img 
+                        crossOrigin="anonymous" 
+                        src="stickers/2.png" 
+                        alt="Ballon 2">
+                    </div>
+                    <div class="sticker" data-sticker="confetti">
+                      <img 
+                        crossOrigin="anonymous" 
+                        src="stickers/3.png" 
+                        alt="Confetti">
+                    </div>
+                    <div class="sticker add-sticker">
+                      <span>+</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="sticker" data-sticker="balloon2">
-                  <img src="stickers/8.png" alt="Ballon 2">
+
+                <div class="option-section">
+                  <h3>Photostrip Background</h3>
+                  <div class="color-options photostrip-options">
+                    <div class="color-option selected" data-color="black"></div>
+                    <div class="color-option" data-color="white"></div>
+                    <div class="color-option" data-color="cream"></div>
+                    <div class="color-option" data-color="lightblue"></div>
+                    <div class="color-option" data-color="lightgreen"></div>
+                    <div class="color-option" data-color="transparent"></div>
+                  </div>
                 </div>
-                <div class="sticker" data-sticker="confetti">
-                  <img src="stickers/2.png" alt="Sticker 3">
+
+                <div class="option-section">
+                  <h3>Filters</h3>
+                  <div class="filter-options">
+                    <div class="filter-option" data-filter="none">No Filter</div>
+                    <div class="filter-option" data-filter="black-and-white">B/W</div>
+                    <div class="filter-option" data-filter="sepia">Sepia</div>
+                    <div class="filter-option" data-filter="warm">Warm</div>
+                    <div class="filter-option" data-filter="cold">Cold</div>
+                    <div class="filter-option" data-filter="cool">Cool</div>
+                  </div>
                 </div>
-                <div class="sticker" data-sticker="party-hat">
-                  <img src="stickers/3.png" alt="Sticker 4">
-                </div>
-                <div class="sticker" data-sticker="cake">
-                  <img src="stickers/4.png" alt="Sticker 5">
-                </div>
-                <div class="sticker" data-sticker="gift">
-                  <img src="stickers/5.png" alt="Sticker 6">
-                </div>
-                <div class="sticker" data-sticker="sticker-9">
-                  <img src="stickers/6.png" alt="Sticker 7">
-                </div>
-                <div class="sticker" data-sticker="sticker-8">
-                  <img src="stickers/7.png" alt="Sticker 8">
-                </div>
-                <div class="sticker add-sticker">
-                  <span>+</span>
+
+                <div class="option-section">
+                  <h3>Options</h3>
+                  <div class="toggle-options">
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="enable-date">
+                      <span class="toggle-slider"></span>
+                      <span class="toggle-label">Add Date</span>
+                    </label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="enable-watermark">
+                      <span class="toggle-slider"></span>
+                      <span class="toggle-label">Add Watermark</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <div class="option-section">
-              <h3>Photostrip</h3>
-              <div class="color-options photostrip-options">
-                <div class="color-option selected" data-color="black"></div>
-                <div class="color-option" data-color="white"></div>
-                <div class="color-option" data-color="cream"></div>
-                <div class="color-option" data-color="lightblue"></div>
-                <div class="color-option" data-color="lightgreen"></div>
-                <div class="color-option" data-color="transparent"></div>
-                <div class="color-option check-selected"></div>
-              </div>
-            </div>
-            
-            <div class="option-section">
-              <h3>Filters</h3>
-              <div class="filter-options">
-                <div class="filter-option" data-filter="black-and-white">black-and-white</div>
-                <div class="filter-option" data-filter="sepia">sepia</div>
-                <div class="filter-option" data-filter="warm">warm</div>
-                <div class="filter-option" data-filter="cold">cold</div>
-                <div class="filter-option" data-filter="cool">cool</div>
-                <div class="filter-option selected" data-filter="none">no-filter</div>
-              </div>
-            </div>
-            
-            <div class="option-section">
-              <div class="toggle-options">
-                <label class="toggle-switch">
-                  <input type="checkbox" id="enable-date">
-                  <span class="toggle-slider"></span>
-                  <span class="toggle-label">Enable Date</span>
-                </label>
-                
-                <label class="toggle-switch">
-                  <input type="checkbox" id="enable-watermark">
-                  <span class="toggle-slider"></span>
-                  <span class="toggle-label">Enable Watermark</span>
-                </label>
-              </div>
-            </div>
-          </div>
-          
-          <div class="photostrip-preview">
-            <div id="photostrip-container" class="photostrip-container">
-              <!-- Photostrip will be generated here -->
-            </div>
-          </div>
-          
-          <div class="control-panel">
-            <button id="retake-button" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
-              Retake Photos
-            </button>
-            <button id="preview-button" class="btn-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-              Update Preview
-            </button>
-            <button id="continue-button" class="btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="download-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Download Photostrip
-            </button>
           </div>
         </div>
       </div>
 
-      <!-- Download Screen -->
+      <!-- Download Screen (Tanpa QR) -->
       <div id="download-screen" class="screen">
         <div class="glass-panel">
           <h2>Your Photos Are Ready!</h2>
           <div class="result-container">
             <div class="final-photo-container">
-              <img id="final-photo" src="" alt="Final photo">
+              <img id="final-photo" src="" alt="Final photostrip">
             </div>
             <div class="download-options glass-panel">
-              <h3>Scan to Download</h3>
-              <div class="qr-container">
-                <canvas id="qr-code"></canvas>
-              </div>
-              <p>Scan the QR code with your phone's camera</p>
+              <h3>Download or Print</h3>
               <div class="download-buttons">
                 <button id="download-button" class="btn-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="download-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="download-icon">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
                   Download Now
                 </button>
+                <button id="print-button" class="btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="print-icon">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                  Print Photostrip
+                </button>
                 <button id="restart-button" class="btn-secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="refresh-icon">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                    <path d="M8 16H3v5"></path>
+                  </svg>
                   Start Again
                 </button>
               </div>
@@ -205,14 +285,7 @@
   <canvas id="canvas" class="hidden"></canvas>
   <canvas id="photostrip-canvas" class="hidden"></canvas>
 
-  <!-- Sticker Templates for Dragging -->
-  <div id="sticker-template" class="hidden"></div>
-
-  <!-- Lovable Script Tag -->
-  <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-  
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+  <!-- Main Script -->
   <script src="main.js"></script>
 </body>
 </html>

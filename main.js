@@ -12,6 +12,7 @@ const previewButton = document.getElementById('preview-button');
 const continueButton = document.getElementById('continue-button');
 const downloadButton = document.getElementById('download-button');
 const restartButton = document.getElementById('restart-button');
+const printButton = document.getElementById('print-button');
 
 // Camera Elements
 const video = document.getElementById('video');
@@ -28,16 +29,19 @@ const photostripCanvas = document.getElementById('photostrip-canvas');
 const enableDateToggle = document.getElementById('enable-date');
 const stickerTemplate = document.getElementById('sticker-template');
 
-// Download Elements
+// Download / QR Elements
 const finalPhoto = document.getElementById('final-photo');
-const qrCanvas = document.getElementById('qr-code');
+const qrCodeContainer = document.getElementById('qr-code');
+
+// Upload Elements
+const uploadButton = document.getElementById('upload-button');
+const uploadInput = document.getElementById('upload-input');
 
 // App State
 let currentStage = 'start';
 let countdown = null;
 let photosTaken = 0;
 let photos = [];
-let selectedPhotoIndex = 0;
 let countdownInterval = null;
 let stickers = [];
 let activeStickerElement = null;
@@ -55,19 +59,10 @@ let editorState = {
 
 // Initialize the app
 function init() {
-  // Set the current year in the footer
+  console.log('Initializing app...');
   document.getElementById('current-year').textContent = new Date().getFullYear();
-  
-  // Setup event listeners
   setupEventListeners();
-  
-  // Initialize fabric.js canvas for sticker functionality
-  initFabric();
-  
-  // Create zoom modal
   createZoomModal();
-  
-  // Check for mobile
   window.addEventListener('resize', () => {
     isMobile = window.innerWidth < 768;
     togglePreviewSection();
@@ -76,73 +71,71 @@ function init() {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Start button
+  console.log('Setting up event listeners...');
+  
   startButton.addEventListener('click', () => {
+    console.log('Start button clicked');
     showScreen('preview');
     startCamera();
   });
   
-  // Capture button
   captureButton.addEventListener('click', startCapture);
   
-  // Retake button
   retakeButton.addEventListener('click', () => {
     showScreen('preview');
     resetPhotos();
     startCamera();
   });
   
-  // Preview button
   previewButton.addEventListener('click', () => {
-    generatePhotostrip();
+    updatePhotostrip();
     showToast('Preview updated!');
   });
   
-  // Continue button
   continueButton.addEventListener('click', () => {
     generateFinalPhotostrip();
     showScreen('download');
     generateQRCode();
   });
   
-  // Download button
   downloadButton.addEventListener('click', downloadImage);
   
-  // Restart button
   restartButton.addEventListener('click', resetApp);
   
-  // Enable date toggle
+  printButton.addEventListener('click', () => {
+    window.print();
+  });
+  
   enableDateToggle.addEventListener('change', (e) => {
     editorState.showDate = e.target.checked;
     updatePhotostrip();
   });
   
-  // Enable watermark toggle
   const enableWatermarkToggle = document.getElementById('enable-watermark');
   enableWatermarkToggle.addEventListener('change', (e) => {
     editorState.showWatermark = e.target.checked;
     updatePhotostrip();
   });
   
-  // Setup color option selection
   setupColorOptions();
-  
-  // Setup filter option selection
   setupFilterOptions();
-  
-  // Setup sticker selection
   setupStickerOptions();
+  
+  uploadButton.addEventListener('click', () => {
+    uploadInput.click();
+  });
+  
+  uploadInput.addEventListener('change', handleUpload);
 }
 
 // Show a specific screen
 function showScreen(screenName) {
-  // Hide all screens
+  console.log(`Showing ${screenName} screen`);
   startScreen.classList.remove('active');
   previewScreen.classList.remove('active');
   editScreen.classList.remove('active');
   downloadScreen.classList.remove('active');
   
-  // Show the requested screen
   switch (screenName) {
     case 'start':
       startScreen.classList.add('active');
@@ -175,6 +168,13 @@ function togglePreviewSection() {
 // Start the camera
 async function startCamera() {
   try {
+    console.log('Starting camera...');
+    // Stop any existing stream
+    if (video.srcObject) {
+      const tracks = video.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    
     const constraints = {
       video: {
         width: { ideal: 1280 },
@@ -183,6 +183,12 @@ async function startCamera() {
       },
       audio: false
     };
+    
+    // Check if getUserMedia is supported
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast("Your browser doesn't support camera access. Please use the upload option instead.", "error");
+      return;
+    }
     
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     
@@ -204,7 +210,6 @@ function stopCamera() {
   if (video && video.srcObject) {
     const stream = video.srcObject;
     const tracks = stream.getTracks();
-    
     tracks.forEach(track => track.stop());
     video.srcObject = null;
   }
@@ -212,42 +217,28 @@ function stopCamera() {
 
 // Start capture process
 function startCapture() {
-  // Reset counter and photos array
+  console.log('Starting capture process...');
   photosTaken = 0;
   photos = [];
-  
-  // Clear preview photos
   if (previewPhotos) {
     previewPhotos.innerHTML = '';
   }
-  
-  // Show photo counter
   photoCounter.textContent = `${photosTaken}/3 Photos`;
   photoCounter.classList.remove('hidden');
-  
-  // Hide capture button during the process
   captureButton.classList.add('hidden');
-  
-  // Start the first countdown
   startCountdown();
 }
 
 // Start the countdown
 function startCountdown() {
-  // Clear any existing interval
   if (countdownInterval) {
     clearInterval(countdownInterval);
   }
-  
-  // Set initial countdown
   countdown = 3;
   countdownDisplay.textContent = countdown;
   countdownDisplay.classList.remove('hidden');
-  
-  // Start interval
   countdownInterval = setInterval(() => {
     countdown--;
-    
     if (countdown <= 0) {
       clearInterval(countdownInterval);
       countdownDisplay.classList.add('hidden');
@@ -260,43 +251,43 @@ function startCountdown() {
 
 // Capture a photo
 function capturePhoto() {
-  // Flash effect
+  console.log('Capturing photo...');
   flashOverlay.classList.add('active');
   setTimeout(() => {
     flashOverlay.classList.remove('active');
   }, 300);
   
-  // Capture frame
   const context = canvas.getContext('2d');
+  
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    console.error('Video dimensions are 0, cannot capture photo');
+    showToast("Cannot capture photo. Please check your camera or use the upload option.", "error");
+    captureButton.classList.remove('hidden');
+    return;
+  }
+  
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
   
-  // Get image data
   const imgData = canvas.toDataURL('image/png');
   photos.push(imgData);
   
-  // Add to preview section if not mobile
   if (!isMobile && previewPhotos) {
-    addPhotoToPreview(imgData, photosTaken + 1);
+    addPhotoToPreview(imgData, photos.length);
   }
   
-  // Increment counter
-  photosTaken++;
-  photoCounter.textContent = `${photosTaken}/3 Photos`;
+  photosTaken = photos.length;
+  photoCounter.textContent = `${photos.length}/3 Photos`;
   
-  if (photosTaken >= 3) {
-    // Move to edit after 3 photos
+  if (photos.length >= 3) {
     setTimeout(() => {
       stopCamera();
       showScreen('edit');
       createPhotostrip();
-      
-      // Show capture button again for the next session
       captureButton.classList.remove('hidden');
     }, 1000);
   } else {
-    // Next photo after a short delay
     setTimeout(() => {
       startCountdown();
     }, 1000);
@@ -319,7 +310,6 @@ function addPhotoToPreview(imgSrc, photoNumber) {
   photoItem.appendChild(img);
   photoItem.appendChild(numberBadge);
   
-  // Add click event for zoom view
   photoItem.addEventListener('click', () => {
     openZoomModal(imgSrc);
   });
@@ -348,7 +338,6 @@ function createZoomModal() {
   modalContent.appendChild(closeBtn);
   zoomModal.appendChild(modalContent);
   
-  // Close modal when clicking outside the image
   zoomModal.addEventListener('click', (e) => {
     if (e.target === zoomModal) {
       closeZoomModal();
@@ -361,12 +350,10 @@ function createZoomModal() {
 // Open zoom modal
 function openZoomModal(imgSrc) {
   if (!zoomModal) return;
-  
   const zoomImg = document.getElementById('zoom-img');
   if (zoomImg) {
     zoomImg.src = imgSrc;
   }
-  
   zoomModal.classList.add('active');
 }
 
@@ -376,17 +363,11 @@ function closeZoomModal() {
   zoomModal.classList.remove('active');
 }
 
-// Initialize fabric.js canvas for interactive elements
-function initFabric() {
-  // This function will be populated when implementing the sticker functionality
-}
-
 // Create the photostrip from captured photos
 function createPhotostrip() {
-  // Clear the container
+  console.log('Creating photostrip...');
   photostripContainer.innerHTML = '';
   
-  // Create elements for each photo
   photos.forEach((photo, index) => {
     const photoElement = document.createElement('div');
     photoElement.className = 'photostrip-photo';
@@ -399,17 +380,14 @@ function createPhotostrip() {
     photostripContainer.appendChild(photoElement);
   });
   
-  // Add date element if enabled
   if (editorState.showDate) {
     addDateToPhotostrip();
   }
   
-  // Add watermark if enabled
   if (editorState.showWatermark) {
     addWatermarkToPhotostrip();
   }
   
-  // Apply initial styles
   updatePhotostrip();
 }
 
@@ -435,22 +413,16 @@ function addWatermarkToPhotostrip() {
 
 // Update photostrip based on editor state
 function updatePhotostrip() {
-  // Update photostrip background color
   photostripContainer.style.backgroundColor = getColorValue(editorState.photostripColor);
   
-  // Update filter for each photo
   const photoElements = photostripContainer.querySelectorAll('.photostrip-photo img');
   photoElements.forEach(img => {
-    // Remove all filter classes
     img.className = '';
-    
-    // Add selected filter class if not 'none'
     if (editorState.filter !== 'none') {
       img.classList.add(`filter-${editorState.filter}`);
     }
   });
   
-  // Handle date display
   const dateElement = photostripContainer.querySelector('.photostrip-date');
   if (editorState.showDate) {
     if (!dateElement) {
@@ -460,7 +432,6 @@ function updatePhotostrip() {
     photostripContainer.removeChild(dateElement);
   }
   
-  // Handle watermark display
   const watermarkElement = photostripContainer.querySelector('.photostrip-watermark');
   if (editorState.showWatermark) {
     if (!watermarkElement) {
@@ -473,20 +444,14 @@ function updatePhotostrip() {
 
 // Setup color option selection
 function setupColorOptions() {
-  // Photostrip color options
   const photostripColorOptions = document.querySelectorAll('.photostrip-options .color-option');
   photostripColorOptions.forEach(option => {
+    if (!option.dataset.color) return;
+    
     option.addEventListener('click', () => {
-      // Remove selected class from all options
       photostripColorOptions.forEach(opt => opt.classList.remove('selected'));
-      
-      // Add selected class to clicked option
       option.classList.add('selected');
-      
-      // Update editor state
       editorState.photostripColor = option.dataset.color;
-      
-      // Update photostrip
       updatePhotostrip();
     });
   });
@@ -496,28 +461,24 @@ function setupColorOptions() {
 function setupFilterOptions() {
   const filterOptions = document.querySelectorAll('.filter-option');
   filterOptions.forEach(option => {
+    if (!option.dataset.filter) return;
+    
     option.addEventListener('click', () => {
-      // Remove selected class from all options
       filterOptions.forEach(opt => opt.classList.remove('selected'));
-      
-      // Add selected class to clicked option
       option.classList.add('selected');
-      
-      // Update editor state
       editorState.filter = option.dataset.filter;
-      
-      // Update photostrip
       updatePhotostrip();
     });
   });
 }
 
-// Setup sticker options
+// Setup sticker options (hapus & resize)
 function setupStickerOptions() {
   const stickerOptions = document.querySelectorAll('.sticker:not(.add-sticker)');
   stickerOptions.forEach(sticker => {
+    if (!sticker.dataset.sticker) return;
+    
     sticker.addEventListener('click', () => {
-      // Get the sticker image
       const stickerImg = sticker.querySelector('img');
       if (stickerImg) {
         addStickerToPhotostrip(stickerImg.src);
@@ -525,11 +486,9 @@ function setupStickerOptions() {
     });
   });
   
-  // Add sticker button
   const addStickerButton = document.querySelector('.add-sticker');
   if (addStickerButton) {
     addStickerButton.addEventListener('click', () => {
-      // This would normally open a file picker to upload custom stickers
       showToast('Custom sticker upload would be implemented here', 'info');
     });
   }
@@ -554,10 +513,28 @@ function addStickerToPhotostrip(stickerSrc) {
   stickerElement.appendChild(img);
   photostripContainer.appendChild(stickerElement);
   
-  // Make sticker draggable
   makeStickerDraggable(stickerElement);
   
-  // Add to stickers array
+  // Double-click untuk hapus
+  stickerElement.addEventListener('dblclick', () => {
+    photostripContainer.removeChild(stickerElement);
+    stickers = stickers.filter(s => s.element !== stickerElement);
+    showToast("Sticker removed!");
+  });
+  
+  // Wheel untuk resize
+  stickerElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    let currentWidth = stickerElement.offsetWidth;
+    let currentHeight = stickerElement.offsetHeight;
+    let newWidth = currentWidth + (e.deltaY < 0 ? 5 : -5);
+    let newHeight = currentHeight + (e.deltaY < 0 ? 5 : -5);
+    if (newWidth < 20) newWidth = 20;
+    if (newHeight < 20) newHeight = 20;
+    stickerElement.style.width = newWidth + "px";
+    stickerElement.style.height = newHeight + "px";
+  });
+  
   stickers.push({
     element: stickerElement,
     src: stickerSrc,
@@ -575,39 +552,27 @@ function makeStickerDraggable(element) {
   
   function dragMouseDown(e) {
     e.preventDefault();
-    // Get the current mouse position
     pos3 = e.clientX;
     pos4 = e.clientY;
-    
-    // Set the active sticker
     activeStickerElement = element;
-    
-    // Add highlight to active sticker
     element.style.outline = '2px solid ' + getColorValue(editorState.photostripColor);
-    
     document.onmouseup = closeDragElement;
     document.onmousemove = elementDrag;
   }
   
   function elementDrag(e) {
     e.preventDefault();
-    // Calculate the new position
     pos1 = pos3 - e.clientX;
     pos2 = pos4 - e.clientY;
     pos3 = e.clientX;
     pos4 = e.clientY;
-    
-    // Set the element's new position
     element.style.top = (element.offsetTop - pos2) + "px";
     element.style.left = (element.offsetLeft - pos1) + "px";
   }
   
   function closeDragElement() {
-    // Stop moving when mouse button is released
     document.onmouseup = null;
     document.onmousemove = null;
-    
-    // Remove highlight from active sticker
     if (activeStickerElement) {
       activeStickerElement.style.outline = 'none';
       activeStickerElement = null;
@@ -616,13 +581,6 @@ function makeStickerDraggable(element) {
 }
 
 // Generate the final photostrip image
-function generatePhotostrip() {
-  // Create a clean version for preview updates
-  updatePhotostrip();
-  showToast('Photostrip updated!');
-}
-
-// Generate the final photostrip for download
 function generateFinalPhotostrip() {
   // Create a new canvas to draw the photostrip
   const finalCanvas = document.createElement('canvas');
@@ -842,6 +800,142 @@ function resetPhotos() {
   }
 }
 
+
+// Apply filter to canvas context
+function applyCanvasFilter(ctx, x, y, width, height, filterType) {
+  const imageData = ctx.getImageData(x, y, width, height);
+  const data = imageData.data;
+  
+  switch (filterType) {
+    case 'black-and-white':
+      for (let i = 0; i < data.length; i += 4) {
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = avg;
+        data[i + 1] = avg;
+        data[i + 2] = avg;
+      }
+      break;
+    case 'sepia':
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+      }
+      break;
+    case 'warm':
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(255, data[i] * 1.1);     // R
+        data[i + 2] = Math.max(0, data[i + 2] * 0.9); // B
+      }
+      break;
+    case 'cold':
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.max(0, data[i] * 0.9);       // R
+        data[i + 2] = Math.min(255, data[i + 2] * 1.1); // B
+      }
+      break;
+    case 'cool':
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const b = data[i + 2];
+        data[i] = b;
+        data[i + 2] = r;
+      }
+      break;
+  }
+  
+  ctx.putImageData(imageData, x, y);
+}
+
+// Generate QR code that directly contains the image data (no server needed)
+function generateQRCode(imageData = null) {
+  console.log('Generating QR code...');
+  qrCodeContainer.innerHTML = "";
+  
+  const dataToEncode = imageData || finalPhoto.src;
+  
+  // Create a QR code that directly contains the image data for scanning
+  new QRCode(qrCodeContainer, {
+    text: dataToEncode,
+    width: 200,
+    height: 200,
+    colorDark: "#1A1F2C",
+    colorLight: "#FFFFFF",
+    correctLevel: QRCode.CorrectLevel.L  // Use lower error correction for more data capacity
+  });
+  
+  showToast("QR code generated! Scan to download directly to your phone.");
+}
+
+// Download the final image
+function downloadImage() {
+  console.log('Downloading image...');
+  if (!finalPhoto.src || finalPhoto.src === '') {
+    showToast("No image to download", "error");
+    return;
+  }
+  
+  const link = document.createElement('a');
+  link.download = `sinemarolas-photostrip-${Date.now()}.png`;
+  link.href = finalPhoto.src;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast("Photostrip downloaded successfully!");
+}
+
+// Reset the app
+function resetApp() {
+  showScreen('start');
+  resetPhotos();
+  stopCamera();
+}
+
+// Reset photos array and editor state
+function resetPhotos() {
+  photos = [];
+  photosTaken = 0;
+  stickers = [];
+  
+  editorState = {
+    photostripColor: 'black',
+    filter: 'none',
+    showDate: false,
+    showWatermark: false,
+    date: new Date()
+  };
+  
+  enableDateToggle.checked = false;
+  const enableWatermarkToggle = document.getElementById('enable-watermark');
+  if (enableWatermarkToggle) {
+    enableWatermarkToggle.checked = false;
+  }
+  
+  if (captureButton) {
+    captureButton.classList.remove('hidden');
+  }
+  
+  if (previewPhotos) {
+    previewPhotos.innerHTML = '';
+  }
+  
+  if (photostripContainer) {
+    photostripContainer.innerHTML = '';
+  }
+  
+  if (finalPhoto) {
+    finalPhoto.src = '';
+  }
+  
+  if (qrCodeContainer) {
+    qrCodeContainer.innerHTML = '';
+  }
+}
+
 // Get the CSS color value from color name
 function getColorValue(colorName) {
   switch (colorName) {
@@ -866,20 +960,14 @@ function getColorValue(colorName) {
 
 // Show a toast notification
 function showToast(message, type = 'success') {
-  // Create toast element
+  console.log(`Toast (${type}): ${message}`);
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.textContent = message;
-  
-  // Add to the document
   document.body.appendChild(toast);
-  
-  // Animate in
   setTimeout(() => {
     toast.classList.add('show');
   }, 10);
-  
-  // Remove after 3 seconds
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => {
@@ -888,39 +976,38 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
-// Create toast CSS
-const toastStyle = document.createElement('style');
-toastStyle.textContent = `
-  .toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 4px;
-    z-index: 1000;
-    opacity: 0;
-    transform: translateX(20px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
+// Handle file upload
+function handleUpload(e) {
+  console.log('Handling file upload...');
+  const files = e.target.files;
+  if (!files.length) return;
   
-  .toast.error {
-    background-color: #f44336;
+  for (let i = 0; i < files.length; i++) {
+    if (photos.length >= 3) break; // max 3
+    const file = files[i];
+    if (!file.type.startsWith('image/')) continue;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      if (event.target && typeof event.target.result === 'string') {
+        photos.push(event.target.result);
+        addPhotoToPreview(event.target.result, photos.length);
+        photoCounter.textContent = `${photos.length}/3 Photos`;
+        photoCounter.classList.remove('hidden');
+        
+        if (photos.length === 3) {
+          setTimeout(() => {
+            showScreen('edit');
+          }, 1000);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   }
-  
-  .toast.info {
-    background-color: #2196F3;
-  }
-  
-  .toast.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
+  // Empty the input value so same files can be selected again
+  e.target.value = "";
+}
 
-document.head.appendChild(toastStyle);
-
-// Initialize the app
+// Initialize the app when DOM is loaded
 window.addEventListener('DOMContentLoaded', init);
+  
