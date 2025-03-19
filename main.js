@@ -40,6 +40,7 @@ let countdown = null;
 let photosTaken = 0;
 let photos = [];
 let countdownInterval = null;
+// Array stickers berisi objek { element, src, x, y, width, height }
 let stickers = [];
 let activeStickerElement = null;
 let zoomModal = null;
@@ -150,7 +151,6 @@ function togglePreviewSection() {
 // Start the camera
 async function startCamera() {
   try {
-    // Stop any existing stream
     if (video.srcObject) {
       const tracks = video.srcObject.getTracks();
       tracks.forEach(track => track.stop());
@@ -171,7 +171,6 @@ async function startCamera() {
     }
     
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    
     if (video) {
       video.srcObject = stream;
       video.onloadedmetadata = () => {
@@ -305,9 +304,7 @@ function createZoomModal() {
   zoomModal.appendChild(modalContent);
   
   zoomModal.addEventListener('click', (e) => {
-    if (e.target === zoomModal) {
-      closeZoomModal();
-    }
+    if (e.target === zoomModal) closeZoomModal();
   });
   
   document.body.appendChild(zoomModal);
@@ -381,7 +378,6 @@ function updatePhotostrip() {
     }
   });
   
-  // Date
   const dateElement = photostripContainer.querySelector('.photostrip-date');
   if (editorState.showDate) {
     if (!dateElement) addDateToPhotostrip();
@@ -389,7 +385,6 @@ function updatePhotostrip() {
     photostripContainer.removeChild(dateElement);
   }
   
-  // Watermark
   const watermarkElement = photostripContainer.querySelector('.photostrip-watermark');
   if (editorState.showWatermark) {
     if (!watermarkElement) addWatermarkToPhotostrip();
@@ -403,7 +398,6 @@ function setupColorOptions() {
   const photostripColorOptions = document.querySelectorAll('.photostrip-options .color-option');
   photostripColorOptions.forEach(option => {
     if (!option.dataset.color) return;
-    
     option.addEventListener('click', () => {
       photostripColorOptions.forEach(opt => opt.classList.remove('selected'));
       option.classList.add('selected');
@@ -418,7 +412,6 @@ function setupFilterOptions() {
   const filterOptions = document.querySelectorAll('.filter-option');
   filterOptions.forEach(option => {
     if (!option.dataset.filter) return;
-    
     option.addEventListener('click', () => {
       filterOptions.forEach(opt => opt.classList.remove('selected'));
       option.classList.add('selected');
@@ -446,7 +439,7 @@ function setupStickerOptions() {
   }
 }
 
-// Add a sticker to the photostrip
+// Add a sticker to the photostrip (simpan state koordinat & ukuran)
 function addStickerToPhotostrip(stickerSrc) {
   const stickerElement = document.createElement('div');
   stickerElement.className = 'photostrip-sticker';
@@ -465,38 +458,46 @@ function addStickerToPhotostrip(stickerSrc) {
   stickerElement.appendChild(img);
   photostripContainer.appendChild(stickerElement);
   
-  makeStickerDraggable(stickerElement);
+  // Buat objek stickerData untuk disimpan
+  const stickerData = {
+    element: stickerElement,
+    src: stickerSrc,
+    // Simpan posisi dan ukuran sebagai number
+    x: 50, // left
+    y: 50, // top
+    width: 60,
+    height: 60
+  };
+  stickers.push(stickerData);
   
-  // Double-click untuk hapus
+  // Buat draggable dan update stickerData saat di-drag
+  makeStickerDraggable(stickerElement, stickerData);
+  
+  // Double-click untuk menghapus stiker
   stickerElement.addEventListener('dblclick', () => {
     photostripContainer.removeChild(stickerElement);
-    stickers = stickers.filter(s => s.element !== stickerElement);
+    stickers = stickers.filter(s => s !== stickerData);
     showToast("Sticker removed!");
   });
   
-  // Wheel untuk resize
+  // Gunakan wheel untuk resize dan update state
   stickerElement.addEventListener('wheel', (e) => {
     e.preventDefault();
-    let currentWidth = stickerElement.offsetWidth;
-    let currentHeight = stickerElement.offsetHeight;
-    let newWidth = currentWidth + (e.deltaY < 0 ? 5 : -5);
-    let newHeight = currentHeight + (e.deltaY < 0 ? 5 : -5);
+    let newWidth = stickerData.width + (e.deltaY < 0 ? 5 : -5);
+    let newHeight = stickerData.height + (e.deltaY < 0 ? 5 : -5);
     if (newWidth < 20) newWidth = 20;
     if (newHeight < 20) newHeight = 20;
     stickerElement.style.width = newWidth + "px";
     stickerElement.style.height = newHeight + "px";
-  });
-  
-  stickers.push({
-    element: stickerElement,
-    src: stickerSrc
+    stickerData.width = newWidth;
+    stickerData.height = newHeight;
   });
   
   showToast('Sticker added! Drag to position it.');
 }
 
-// Make a sticker element draggable
-function makeStickerDraggable(element) {
+// Make a sticker element draggable dan update stickerData
+function makeStickerDraggable(element, stickerData) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
   
   element.onmousedown = dragMouseDown;
@@ -517,8 +518,13 @@ function makeStickerDraggable(element) {
     pos2 = pos4 - e.clientY;
     pos3 = e.clientX;
     pos4 = e.clientY;
-    element.style.top = (element.offsetTop - pos2) + "px";
-    element.style.left = (element.offsetLeft - pos1) + "px";
+    let newLeft = element.offsetLeft - pos1;
+    let newTop = element.offsetTop - pos2;
+    element.style.left = newLeft + "px";
+    element.style.top = newTop + "px";
+    // Update state stickerData
+    stickerData.x = newLeft;
+    stickerData.y = newTop;
   }
   
   function closeDragElement() {
@@ -531,7 +537,7 @@ function makeStickerDraggable(element) {
   }
 }
 
-// Generate the final photostrip image (with onload wait)
+// Generate the final photostrip image
 function generateFinalPhotostrip() {
   const finalCanvas = document.createElement('canvas');
   const ctx = finalCanvas.getContext('2d');
@@ -542,53 +548,46 @@ function generateFinalPhotostrip() {
   finalCanvas.width = containerWidth;
   finalCanvas.height = containerHeight;
   
-  // Fill background
+  // Isi background
   ctx.fillStyle = getColorValue(editorState.photostripColor);
   ctx.fillRect(0, 0, containerWidth, containerHeight);
   
-  // Kumpulkan semua <img> di photostrip (termasuk sticker)
+  // Kumpulkan foto, date, watermark
   const photoDivs = photostripContainer.querySelectorAll('.photostrip-photo img');
   const dateEl = photostripContainer.querySelector('.photostrip-date');
   const watermarkEl = photostripContainer.querySelector('.photostrip-watermark');
   
-  // Kita akan menunggu semua foto selesai load (promise) sebelum digambar
   const imagePromises = [];
-  
-  // Gambar foto satu per satu, secara vertikal (sederhana)
   let currentY = 10;
   const gap = 10;
   
-  photoDivs.forEach((imgTag, index) => {
+  photoDivs.forEach((imgTag) => {
     const p = new Promise((resolve) => {
       const loadedImg = new Image();
+      loadedImg.crossOrigin = "anonymous";
       loadedImg.src = imgTag.src;
       loadedImg.onload = () => {
-        // Hitung aspect ratio
         const ratio = loadedImg.width / loadedImg.height;
-        const desiredWidth = containerWidth - 20; // margin 10 kiri/kanan
+        const desiredWidth = containerWidth - 20;
         const desiredHeight = desiredWidth / ratio;
-        
         ctx.drawImage(loadedImg, 10, currentY, desiredWidth, desiredHeight);
         currentY += desiredHeight + gap;
         resolve();
       };
-      loadedImg.onerror = resolve; // kalau gagal load, tetap resolve
+      loadedImg.onerror = () => resolve();
     });
     imagePromises.push(p);
   });
   
-  // Setelah semua foto beres, baru gambar date/watermark
   Promise.all(imagePromises).then(() => {
     // Gambar date
     if (dateEl && editorState.showDate) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(10, currentY, containerWidth - 20, 40);
-      
       ctx.font = '20px "Playfair Display", serif';
       ctx.fillStyle = '#000000';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       const dateText = editorState.date.toLocaleDateString(undefined, options);
       ctx.fillText(dateText, containerWidth / 2, currentY + 20);
@@ -599,7 +598,6 @@ function generateFinalPhotostrip() {
     if (watermarkEl && editorState.showWatermark) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(10, currentY, containerWidth - 20, 40);
-      
       ctx.font = 'italic 18px "Playfair Display", serif';
       ctx.fillStyle = '#333333';
       ctx.textAlign = 'center';
@@ -608,32 +606,23 @@ function generateFinalPhotostrip() {
       currentY += 40 + gap;
     }
     
-    // Terakhir, gambar stiker
-    // (Stiker posisinya absolute di photostripContainer)
-    stickers.forEach(sticker => {
-      const stickerImg = new Image();
-      stickerImg.src = sticker.src;
-      const x = parseInt(sticker.element.style.left) || 0;
-      const y = parseInt(sticker.element.style.top) || 0;
-      const w = sticker.element.offsetWidth;
-      const h = sticker.element.offsetHeight;
-      
-      // Kita load stiker dulu
-      stickerImg.onload = () => {
-        ctx.drawImage(stickerImg, x, y, w, h);
-        // Update finalPhoto di akhir
-        finalPhoto.src = finalCanvas.toDataURL('image/png');
-      };
-      stickerImg.onerror = () => {
-        // kalau stiker gagal load, tetap set finalPhoto
-        finalPhoto.src = finalCanvas.toDataURL('image/png');
-      };
+    // Gambar stiker berdasarkan data di state (stickers array)
+    const stickerPromises = stickers.map((stickerData) => {
+      return new Promise((resolve) => {
+        const stickerImg = new Image();
+        stickerImg.crossOrigin = "anonymous";
+        stickerImg.src = stickerData.src;
+        stickerImg.onload = () => {
+          ctx.drawImage(stickerImg, stickerData.x, stickerData.y, stickerData.width, stickerData.height);
+          resolve();
+        };
+        stickerImg.onerror = () => resolve();
+      });
     });
     
-    // Jika tidak ada stiker, langsung set finalPhoto
-    if (stickers.length === 0) {
+    Promise.all(stickerPromises).then(() => {
       finalPhoto.src = finalCanvas.toDataURL('image/png');
-    }
+    });
   });
 }
 
@@ -728,7 +717,6 @@ function handleUpload(e) {
         addPhotoToPreview(event.target.result, photos.length);
         photoCounter.textContent = `${photos.length}/3 Photos`;
         photoCounter.classList.remove('hidden');
-        
         if (photos.length === 3) {
           setTimeout(() => showScreen('edit'), 1000);
         }
